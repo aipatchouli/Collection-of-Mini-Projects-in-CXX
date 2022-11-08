@@ -1,33 +1,29 @@
-
-/**
-You need libevent2 to compile this piece of code
-Please see: http://libevent.org/
-Or you can simply run this command to install on Mac: brew install libevent
-Cmd to compile this piece of code: g++ LibeventQuickStartClient.c -o LibeventQuickStartClient /usr/local/lib/libevent.a
-**/
 #include <arpa/inet.h>
+#include <array>
 #include <cerrno>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <event.h>
+#include <event2/buffer.h>
+#include <event2/bufferevent.h>
+#include <event2/util.h>
+#include <iostream>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <event.h>
-#include <event2/util.h>
-#include <iostream>
-
 int tcp_connect_server(const char* server_ip, int port);
 
 void cmd_msg_cb(int fd, int16_t events, void* arg);
-void socket_read_cb(int fd, int16_t events, void* arg);
+void server_msg_cb(struct bufferevent* bev, void* arg);
+void event_cb(struct bufferevent* bev, int16_t event, void* arg);
 
 int main(int argc, char** argv) {
     if (argc < 3) {
-        std::cout << "please input 2 parameter" << std::endl;
+        std::cout << "please input server ip and port" << std::endl;
         return -1;
     }
 
@@ -42,17 +38,16 @@ int main(int argc, char** argv) {
 
     struct event_base* base = event_base_new();
 
-    struct event* ev_sockfd = event_new(base, sockfd,
-                                        EV_READ | EV_PERSIST,
-                                        socket_read_cb, nullptr);
-    event_add(ev_sockfd, nullptr);
+    struct bufferevent* bev = bufferevent_socket_new(base, sockfd,
+                                                     BEV_OPT_CLOSE_ON_FREE);
 
     // 监听终端输入事件
-    struct event* ev_cmd = event_new(base, STDIN_FILENO,
-                                     EV_READ | EV_PERSIST, cmd_msg_cb,
-                                     (void*)&sockfd);
-
+    struct event* ev_cmd = event_new(base, STDIN_FILENO, EV_READ | EV_PERSIST, cmd_msg_cb, (void*)bev);
     event_add(ev_cmd, nullptr);
+
+    // 当socket关闭时会用到回调参数
+    bufferevent_setcb(bev, server_msg_cb, nullptr, event_cb, (void*)ev_cmd);
+    bufferevent_enable(bev, EV_READ | EV_PERSIST);
 
     event_base_dispatch(base);
 
@@ -65,31 +60,41 @@ void cmd_msg_cb(int fd, int16_t /*events*/, void* arg) {
     char msg[1024];
 
     int ret = read(fd, msg, sizeof(msg));
-    if (ret <= 0) {
-        perror("read fail ");
-        exit(1);
+    if (ret < 0) {
+        perror("read fail");
+
+        _exit(1);
     }
 
-    int sockfd = *(static_cast<int*>(arg));
+    struct bufferevent* bev = (struct bufferevent*)arg;
 
     // 把终端的消息发送给服务器端
-    // 为了简单起见，不考虑写一半数据的情况
-    write(sockfd, msg, ret);
+    bufferevent_write(bev, msg, ret);
 }
 
-void socket_read_cb(int fd, int16_t /*events*/, void* /*arg*/) {
+void server_msg_cb(struct bufferevent* bev, void* /*arg*/) {
     char msg[1024];
 
-    // 为了简单起见，不考虑读一半数据的情况
-    int len = read(fd, msg, sizeof(msg) - 1);
-    if (len <= 0) {
-        perror("read fail ");
-        exit(1);
-    }
-
+    size_t len = bufferevent_read(bev, msg, sizeof(msg));
     msg[len] = '\0';
 
-    printf("recv %s from server\n", msg);
+    std::cout << "recv " << msg << " from server" << std::endl;
+}
+
+void event_cb(struct bufferevent* bev, int16_t event, void* arg) {
+    if ((event & BEV_EVENT_EOF) != 0) {
+        std::cout << "connection closed" << std::endl;
+
+    } else if ((event & BEV_EVENT_ERROR) != 0) {
+        std::cout << "some other error" << std::endl;
+    }
+
+    // 这将自动close套接字和free读写缓冲区
+    bufferevent_free(bev);
+
+    struct event* ev = (struct event*)arg;
+    // 因为socket已经没有，所以这个event也没有存在的必要了
+    event_free(ev);
 }
 
 using SA = struct sockaddr;

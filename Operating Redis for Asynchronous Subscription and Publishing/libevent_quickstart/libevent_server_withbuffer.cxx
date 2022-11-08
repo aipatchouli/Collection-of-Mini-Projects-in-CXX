@@ -1,38 +1,33 @@
-/**
-You need libevent2 to compile this piece of code
-Please see: http://libevent.org/
-Or you can simply run this command to install on Mac: brew install libevent
-Cmd to compile this piece of code: g++ LibeventQuickStartServer.c  -o  LibeventQuickStartServer /usr/local/lib/libevent.a
-**/
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <event.h>
+#include <event2/bufferevent.h>
 #include <iostream>
 #include <unistd.h>
 
 void accept_cb(int fd, int16_t events, void* arg);
-void socket_read_cb(int fd, int16_t events, void* arg);
-
+void socket_read_cb(bufferevent* bev, void* arg);
+void event_cb(struct bufferevent* bev, int16_t event, void* arg);
 int tcp_server_init(int port, int listen_num);
 
-int main(int /*argc*/, char const* /*argv*/[]) {
-    /* code */
+int main(int /*argc*/, char** /*argv*/) {
     int listener = tcp_server_init(9999, 10);
     if (listener == -1) {
-        perror("tcp_server_init error");
+        perror(" tcp_server_init error ");
         return -1;
     }
 
     struct event_base* base = event_base_new();
 
-    // 监听客户端请求链接事件
-    struct event* ev_listen = event_new(base, listener, EV_READ | EV_PERSIST, accept_cb, base);
-
+    // 添加监听客户端请求连接事件
+    struct event* ev_listen = event_new(base, listener, EV_READ | EV_PERSIST,
+                                        accept_cb, base);
     event_add(ev_listen, nullptr);
 
     event_base_dispatch(base);
+    event_base_free(base);
 
     return 0;
 }
@@ -48,34 +43,37 @@ void accept_cb(int fd, int16_t /*events*/, void* arg) {
 
     std::cout << "accept a client " << sockfd << std::endl;
 
-    auto* base = static_cast<event_base*>(arg);
+    struct event_base* base = static_cast<event_base*>(arg);
 
-    // 动态创建一个event结构体，并将其作为回调参数传递给
-    struct event* ev = event_new(nullptr, -1, 0, nullptr, nullptr);
-    event_assign(ev, base, sockfd, EV_READ | EV_PERSIST, socket_read_cb, ev);
+    bufferevent* bev = bufferevent_socket_new(base, sockfd, BEV_OPT_CLOSE_ON_FREE);
+    bufferevent_setcb(bev, socket_read_cb, nullptr, event_cb, arg);
 
-    event_add(ev, nullptr);
+    bufferevent_enable(bev, EV_READ | EV_PERSIST);
 }
 
-void socket_read_cb(int fd, int16_t /*events*/, void* arg) {
+void socket_read_cb(bufferevent* bev, void* /*arg*/) {
     char msg[4096];
-    auto* ev = static_cast<struct event*>(arg);
-    int len = read(fd, msg, sizeof(msg) - 1);
 
-    if (len <= 0) {
-        std::cout << "some error happen when read" << std::endl;
-        event_free(ev);
-        close(fd);
-        return;
-    }
+    size_t len = bufferevent_read(bev, msg, sizeof(msg));
 
     msg[len] = '\0';
     std::cout << "recv the client msg: " << msg << std::endl;
 
-    char reply_msg[4096] = "I have received the msg: ";
-    strcat(reply_msg + strlen(reply_msg), msg);
+    char reply_msg[4096] = "I have recvieced the msg: ";
 
-    write(fd, reply_msg, strlen(reply_msg));
+    strcat(reply_msg + strlen(reply_msg), msg);
+    bufferevent_write(bev, reply_msg, strlen(reply_msg));
+}
+
+void event_cb(struct bufferevent* bev, int16_t event, void* /*arg*/) {
+    if ((event & BEV_EVENT_EOF) != 0) {
+        std::cout << "connection closed" << std::endl;
+    } else if ((event & BEV_EVENT_ERROR) != 0) {
+        std::cout << "some other error" << std::endl;
+    }
+
+    // 这将自动close套接字和free读写缓冲区
+    bufferevent_free(bev);
 }
 
 using SA = struct sockaddr;
