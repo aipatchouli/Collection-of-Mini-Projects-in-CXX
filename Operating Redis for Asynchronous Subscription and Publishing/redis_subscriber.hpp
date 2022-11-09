@@ -1,35 +1,30 @@
-#ifndef REDIS_PUBLISHER_HPP
-#define REDIS_PUBLISHER_HPP
+#ifndef REDIS_SUBSCRIBER_HPP
+#define REDIS_SUBSCRIBER_HPP
 
 #include <boost/tr1/functional.hpp>
-#include <cstdint>
 #include <cstdlib>
 #include <hiredis/adapters/libevent.h>
 #include <hiredis/async.h>
+#include <pthread.h>
 #include <semaphore.h>
 #include <string>
-#include <thread>
 #include <unistd.h>
 #include <vector>
 
-// The RedisPublisher class is used to publish messages to a Redis channel.
-// define the callback function type
-class CXXRedisPublisher {
+class CXXRedisSubscriber {
 public:
-    CXXRedisPublisher();
-    ~CXXRedisPublisher() = default;
+    using NotifyMessageFn = std::tr1::function<void(const char*, const char*, int)>;
 
-    CXXRedisPublisher(const CXXRedisPublisher&) = default;
-    CXXRedisPublisher(CXXRedisPublisher&&) = delete;
-    CXXRedisPublisher& operator=(const CXXRedisPublisher&) = default;
-    CXXRedisPublisher& operator=(CXXRedisPublisher&&) = delete;
+    CXXRedisSubscriber();
+    ~CXXRedisSubscriber() = default;
 
-    bool init();
+    bool init(const NotifyMessageFn& fn); // 传入回调对象
     bool uninit();
     bool connect();
     bool disconnect();
 
-    bool publish(const std::string& channel_name, const std::string& message);
+    // 可以多次调用，订阅多个频道
+    bool subscribe(const std::string& channel_name);
 
 private:
     // 下面三个回调函数供redis服务调用
@@ -54,6 +49,9 @@ private:
     sem_t _event_sem;
     // hiredis异步对象
     redisAsyncContext* _redis_context;
+
+    // 通知外层的回调函数对象
+    NotifyMessageFn _notify_message_fn;
 };
 
-#endif // REDIS_PUBLISHER_HPP
+#endif
