@@ -1,0 +1,5 @@
+# ninja log v5
+0	62	1668147557505490458	CMakeFiles/TCPServerDemo.dir/src/server.cxx.o	e6f2b78bbe47537f
+0	63	1668147557506490443	CMakeFiles/TCPClientDemo.dir/src/client.cxx.o	2635f3ab63fb0b1
+63	210	1668147557646488271	/home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/TCPServerDemo/bin/TCPClientDemo	f04fe3210582bdeb
+62	224	1668147557663488007	/home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/TCPServerDemo/bin/TCPServerDemo	27cbda3c790311d4

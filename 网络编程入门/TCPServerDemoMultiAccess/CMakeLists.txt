@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.1)
 
-SET(PROJECT_SOURCE_DIR /home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/TCPServerDemo)
+SET(PROJECT_SOURCE_DIR /home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/TCPServerDemoMultiAccess)
 
 project(TCPServerDemo)
 SET(CMAKE_CXX_STANDARD 17)
