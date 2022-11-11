@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/MultiThreads/build",
+  "command": "clang++ -std=gnu++17 -o CMakeFiles/TCPServerDemo.dir/src/server.cxx.o -c /home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/MultiThreads/src/server.cxx",
+  "file": "/home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/MultiThreads/src/server.cxx"
+},
+{
+  "directory": "/home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/MultiThreads/build",
+  "command": "clang++ -std=gnu++17 -o CMakeFiles/TCPClientDemo.dir/src/client.cxx.o -c /home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/MultiThreads/src/client.cxx",
+  "file": "/home/patchy/文档/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/网络编程入门/MultiThreads/src/client.cxx"
+}
+]
