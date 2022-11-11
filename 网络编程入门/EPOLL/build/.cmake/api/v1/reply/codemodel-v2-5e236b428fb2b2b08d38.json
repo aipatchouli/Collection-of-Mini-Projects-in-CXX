@@ -1,0 +1,69 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-DEBUGE-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20.1"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "DEBUGE",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "TCPServerDemo",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "TCPClientDemo::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-TCPClientDemo-DEBUGE-35d0b9bdef04951ffdfd.json",
+					"name" : "TCPClientDemo",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "TCPServerDemo::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-TCPServerDemo-DEBUGE-fe4ba692a8eb7fd8338e.json",
+					"name" : "TCPServerDemo",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/patchy/\u6587\u6863/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/\u7f51\u7edc\u7f16\u7a0b\u5165\u95e8/EPOLL/build",
+		"source" : "/home/patchy/\u6587\u6863/C++_PROJECT/Collection_of_Mini_Projects_in_CXX/\u7f51\u7edc\u7f16\u7a0b\u5165\u95e8/EPOLL"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}
